@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ToneCopy — Copia el tono de cualquier artista para tu GE150</title>
+<meta name="description" content="Sube una canción y obtén los parámetros exactos para tu Mooer GE150 Pro Li.">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#181818;--bg4:#202020;
+  --border:#2a2a2a;--border2:#333;
+  --txt:#e8e8e8;--txt2:#888;--txt3:#444;
+  --red:#cc1a00;--red-glow:rgba(204,26,0,.35);
+  --gold:#c8921a;--gold-lt:#f0b830;
+  --green:#1a7a30;--green-lt:#2aaa44;
+  --blue-lt:#3a6aee;--amber-lt:#f0a030;--purple-lt:#8a3aee;
+  --font-h:'Oswald',sans-serif;--font-m:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#333 #0a0a0a}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#0a0a0a}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+body{font-family:var(--font-m);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+
+/* VISTAS */
+.landing{display:block}.landing.hidden{display:none}
+.appui{display:none}.appui.visible{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── LANDING ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:linear-gradient(180deg,rgba(10,10,10,.95),transparent);backdrop-filter:blur(8px)}
+.nav-logo{font-family:var(--font-h);font-size:22px;font-weight:700;letter-spacing:1px;cursor:pointer;color:#fff}
+.nav-logo span{color:var(--red)}
+.nav-cta{background:var(--red);color:#fff;border:none;padding:9px 22px;border-radius:3px;font-family:var(--font-m);font-size:12px;font-weight:700;letter-spacing:.08em;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.nav-cta:hover{background:#ee2a10;box-shadow:0 0 20px var(--red-glow)}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 20px 60px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(204,26,0,.08),transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(204,26,0,.08);border:1px solid rgba(204,26,0,.25);color:var(--red);font-size:10px;font-weight:700;letter-spacing:.15em;padding:5px 14px;border-radius:2px;margin-bottom:28px;text-transform:uppercase}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-title{font-family:var(--font-h);font-size:clamp(52px,10vw,96px);font-weight:700;line-height:.95;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.hero-title .t{color:#fff}.hero-title .c{color:var(--red);text-shadow:0 0 40px rgba(204,26,0,.5)}
+.hero-sub{font-family:var(--font-h);font-size:clamp(13px,2.5vw,18px);color:var(--txt2);letter-spacing:3px;text-transform:uppercase;margin-bottom:28px;font-weight:400}
+.hero-desc{font-size:14px;color:var(--txt2);line-height:1.9;max-width:500px;margin:0 auto 36px}
+.hero-desc b{color:var(--txt);font-weight:700}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.btn-p{background:var(--red);color:#fff;border:none;padding:13px 30px;border-radius:3px;font-family:var(--font-m);font-size:13px;font-weight:700;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.btn-p:hover{background:#ee2a10;box-shadow:0 0 30px var(--red-glow);transform:translateY(-1px)}
+.btn-o{background:transparent;color:var(--txt);border:1px solid var(--border2);padding:13px 30px;border-radius:3px;font-family:var(--font-m);font-size:13px;font-weight:500;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.btn-o:hover{border-color:var(--txt2);color:#fff}
+.hero-tags{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;opacity:.4;font-size:10px;color:var(--txt2);letter-spacing:.1em}
+
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.feat{background:var(--bg);padding:32px 26px}
+.feat-n{font-family:var(--font-h);font-size:36px;font-weight:700;color:var(--border2);margin-bottom:10px}
+.feat-t{font-family:var(--font-h);font-size:15px;font-weight:600;color:#fff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.feat-d{font-size:12px;color:var(--txt2);line-height:1.8}
+
+.pricing-wrap{padding:80px 40px;text-align:center;background:var(--bg2)}
+.sec-lbl{font-size:10px;color:var(--red);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;font-weight:700}
+.sec-t{font-family:var(--font-h);font-size:clamp(26px,5vw,44px);font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.sec-s{font-size:13px;color:var(--txt2);line-height:1.8;max-width:480px;margin:0 auto 44px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--border);max-width:800px;margin:0 auto;border:1px solid var(--border)}
+.plan{background:var(--bg);padding:26px 22px;text-align:left}
+.plan.hot{background:linear-gradient(160deg,rgba(204,26,0,.06),var(--bg));border-left:2px solid var(--red)}
+.plan-n{font-family:var(--font-h);font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-bottom:6px}
+.plan-p{font-family:var(--font-h);font-size:32px;font-weight:700;color:#fff;margin-bottom:4px}
+.plan-p span{font-size:13px;color:var(--txt2);font-weight:400}
+.plan-d{font-size:11px;color:var(--txt3);margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.plan-f{font-size:11px;color:var(--txt2);padding:3px 0;display:flex;gap:7px}
+.plan-f::before{content:'—';color:var(--border2);flex-shrink:0}
+.plan-f.ok::before{content:'✓';color:var(--green-lt)}
+.plan-btn{width:100%;margin-top:18px;background:transparent;border:1px solid var(--border2);color:var(--txt2);padding:9px;border-radius:2px;font-family:var(--font-m);font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.plan-btn:hover{border-color:var(--txt);color:#fff}
+.plan.hot .plan-btn{background:var(--red);border-color:var(--red);color:#fff}
+.plan.hot .plan-btn:hover{background:#ee2a10}
+
+footer{padding:36px 40px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.f-logo{font-family:var(--font-h);font-size:20px;font-weight:700}
+.f-logo .t{color:#fff}.f-logo .c{color:var(--red)}
+.f-sign{font-size:11px;color:var(--txt3);text-align:right}
+.f-sign .rx{color:var(--txt2)}.f-sign .rxx{color:var(--red)}
+
+/* ── APP UI ── */
+.app-top{background:#0d0d0d;border-bottom:1px solid var(--border);padding:0 14px;height:46px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px}
+.app-logo{font-family:var(--font-h);font-size:18px;font-weight:700;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+.app-logo .t{color:#fff}.app-logo .c{color:var(--red)}
+.app-sign{font-size:7px;color:var(--txt3);letter-spacing:.12em;font-family:var(--font-m);white-space:nowrap}
+.app-sign .rx{color:var(--txt2)}.app-sign .rxx{color:var(--red)}
+.preset-bar{flex:1;max-width:280px;background:var(--bg2);border:1px solid var(--border);border-radius:2px;padding:0 10px;height:28px;display:flex;align-items:center;gap:7px;overflow:hidden}
+.pb-lbl{font-size:8px;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0}
+.pb-val{font-size:10px;color:var(--gold-lt);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-acts{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.ab{background:var(--bg3);border:1px solid var(--border2);color:var(--txt2);padding:4px 10px;border-radius:2px;font-family:var(--font-m);font-size:9px;font-weight:700;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;transition:all .15s;white-space:nowrap}
+.ab:hover{border-color:var(--txt2);color:var(--txt)}
+.ab.r{border-color:rgba(204,26,0,.3);color:var(--red)}.ab.r:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.ab.g{border-color:rgba(26,122,48,.4);color:var(--green-lt)}.ab.g:hover{background:var(--green);color:#fff}
+.conf{font-size:9px;color:var(--green-lt);letter-spacing:.1em;background:rgba(26,122,48,.08);border:1px solid rgba(26,122,48,.25);padding:3px 9px;border-radius:2px;display:none;white-space:nowrap}
+
+.url-row{background:#0d0d0d;border-bottom:1px solid var(--border);padding:7px 14px;display:none;gap:7px;align-items:center;flex-shrink:0}
+.url-row.show{display:flex}
+.url-in{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--txt);padding:6px 10px;border-radius:2px;font-family:var(--font-m);font-size:12px;outline:none;transition:border-color .15s}
+.url-in:focus{border-color:var(--red)}
+.url-in::placeholder{color:var(--txt3)}
+
+.artist-row{background:#0d0d0d;border-bottom:1px solid var(--border);padding:5px 14px;display:flex;align-items:center;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.artist-row::-webkit-scrollbar{display:none}
+.ar-lbl{font-size:8px;color:var(--txt3);letter-spacing:.15em;text-transform:uppercase;flex-shrink:0;margin-right:4px}
+.ac{background:transparent;border:1px solid var(--border);color:var(--txt3);font-size:10px;padding:3px 9px;border-radius:1px;cursor:pointer;transition:all .12s;letter-spacing:.04em;font-family:var(--font-m);white-space:nowrap;flex-shrink:0}
+.ac:hover{border-color:var(--red);color:var(--red)}
+.ac.on{border-color:var(--red);color:var(--red);background:rgba(204,26,0,.07)}
+
+.app-main{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 14px}
+
+/* AMP */
+.amp-wrap{display:grid;grid-template-columns:1fr 190px;gap:10px;margin-bottom:12px}
+.amp-head{background:linear-gradient(180deg,#1e1608,#0a0802);border:2px solid #3a2808;border-radius:6px;padding:10px 14px;position:relative;overflow:hidden}
+.amp-head::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#4a3008,var(--gold-lt),#4a3008);opacity:.7}
+.amp-head-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.amp-np{background:linear-gradient(90deg,#1a1004,#2a1a08,#1a1004);border:1px solid #4a3010;border-radius:3px;padding:4px 12px;display:inline-block}
+.amp-np-txt{font-family:var(--font-h);font-size:12px;font-style:italic;color:var(--gold-lt);letter-spacing:.04em}
+.amp-type{font-size:8px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;margin-top:2px;font-family:var(--font-m)}
+.pwr{width:26px;height:15px;border-radius:8px;background:#1a1a1a;border:1px solid #333;cursor:pointer;display:flex;align-items:center;padding:2px;transition:all .2s;flex-shrink:0}
+.pwr.on{background:rgba(26,122,48,.3);border-color:rgba(42,170,68,.5);justify-content:flex-end}
+.pwr-dot{width:11px;height:11px;border-radius:50%;background:#333;transition:all .2s}
+.pwr.on .pwr-dot{background:var(--green-lt);box-shadow:0 0 5px var(--green-lt)}
+.amp-ks{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.ak{display:flex;flex-direction:column;align-items:center;gap:2px}
+.ak-k{width:34px;height:34px;border-radius:50%;cursor:pointer;position:relative;background:radial-gradient(circle at 35% 28%,#5a5040,#1a1408);border:2px solid #3a2a10;box-shadow:0 3px 8px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .15s}
+.ak-k:hover{transform:scale(1.08)}
+.ak-k::after{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);width:3px;height:10px;background:var(--gold-lt);border-radius:1.5px;opacity:.9}
+.ak-l{font-size:7px;color:#6a4a10;text-transform:uppercase;letter-spacing:.06em;text-align:center;font-family:var(--font-m)}
+.ak-v{font-size:9px;color:var(--gold-lt);font-weight:700;text-align:center;min-width:22px;font-family:var(--font-m)}
+
+/* CAB */
+.cab{background:linear-gradient(180deg,#0e0c08,#060402);border:2px solid #2a1e08;border-radius:6px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.cab-lbl{font-size:8px;color:#4a3a10;letter-spacing:.15em;text-transform:uppercase;font-family:var(--font-m)}
+.cab-mdl{font-size:11px;font-weight:700;color:var(--gold);font-family:var(--font-h);letter-spacing:.5px;text-align:center}
+.cab-g{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%}
+.spk{aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 40% 35%,#2a2010,#0e0a04);border:2px solid #2a1e08;display:flex;align-items:center;justify-content:center}
+.spk-in{width:42%;height:42%;border-radius:50%;background:#080604;border:1.5px solid #1a1408}
+.cab-info{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%}
+.ci{text-align:center}
+.ci-l{font-size:7px;color:#3a2a08;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-m)}
+.ci-v{font-size:9px;color:var(--gold-lt);font-weight:700;font-family:var(--font-h)}
+
+/* PARAM PANEL */
+.pp{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px 14px;margin-bottom:12px;display:none;animation:fu .2s ease}
+.pp.show{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.pp-t{font-family:var(--font-h);font-size:13px;font-weight:600;color:#fff;letter-spacing:.5px}
+.pp-s{font-size:9px;color:var(--txt3);letter-spacing:.1em;font-family:var(--font-m)}
+.pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.pp-p{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:8px 10px}
+.pp-pn{font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;font-family:var(--font-m)}
+.pp-sl{width:100%;margin:3px 0;accent-color:var(--gold-lt);cursor:pointer}
+.pp-vr{display:flex;justify-content:space-between;align-items:center}
+.pp-pv{font-size:13px;font-weight:700;color:var(--gold-lt);font-family:var(--font-h)}
+.pp-mx{font-size:8px;color:var(--txt3);font-family:var(--font-m)}
+
+/* BOARD */
+.board{background:repeating-linear-gradient(90deg,#121008 0,#121008 38px,#181408 39px,#181408 40px),repeating-linear-gradient(0deg,#121008 0,#121008 38px,#181408 39px,#181408 40px);border:2px solid #2a2010;border-radius:6px;padding:14px 12px;margin-bottom:10px}
+.board-lbl{font-size:8px;color:#2a2010;letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;font-family:var(--font-m)}
+.peds{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.cab-c{display:flex;align-items:center;self-align:center;flex-shrink:0;margin-bottom:18px}
+.c-line{height:3px;width:10px;background:linear-gradient(90deg,#222,#333,#222);border-radius:1px}
+.c-plug{width:7px;height:10px;background:radial-gradient(#555,#2a2a2a);border-radius:2px;border:1px solid #444}
+
+/* PEDALES */
+.ped{border-radius:8px;padding:9px 7px 7px;position:relative;cursor:pointer;flex-shrink:0;transition:transform .12s,filter .12s;box-shadow:0 5px 15px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04)}
+.ped:hover{transform:translateY(-4px) scale(1.04);filter:brightness(1.12)}
+.ped.sel{outline:2px solid var(--gold-lt);outline-offset:3px}
+.ped.off{filter:brightness(.4) grayscale(.5)}
+
+.p-gr{background:linear-gradient(160deg,#2e2e2e,#111);border:1.5px solid #3a3a3a}
+.p-rd{background:linear-gradient(160deg,#aa1808,#420600);border:1.5px solid #cc2010}
+.p-gn{background:linear-gradient(160deg,#186a28,#08260c);border:1.5px solid #228832}
+.p-yw{background:linear-gradient(160deg,#b89018,#4a3800);border:1.5px solid #d8aa28}
+.p-or{background:linear-gradient(160deg,#b84810,#481400);border:1.5px solid #cc5820}
+.p-bl{background:linear-gradient(160deg,#183880,#081430);border:1.5px solid #2858cc}
+.p-pu{background:linear-gradient(160deg,#421880,#180830);border:1.5px solid #6828cc}
+
+.p-top{height:2.5px;border-radius:3px 3px 0 0;margin:-9px -7px 7px}
+.p-gr .p-top{background:linear-gradient(90deg,#4a4a4a,#6a6a6a,#4a4a4a)}
+.p-rd .p-top{background:linear-gradient(90deg,#cc2010,#ff5040,#cc2010)}
+.p-gn .p-top{background:linear-gradient(90deg,#228832,#44cc55,#228832)}
+.p-yw .p-top{background:linear-gradient(90deg,#c89020,#ffd840,#c89020)}
+.p-or .p-top{background:linear-gradient(90deg,#cc5820,#ff8840,#cc5820)}
+.p-bl .p-top{background:linear-gradient(90deg,#2858cc,#50a0ff,#2858cc)}
+.p-pu .p-top{background:linear-gradient(90deg,#6828cc,#a050ff,#6828cc)}
+
+.p-br{font-size:6px;color:rgba(255,255,255,.2);letter-spacing:.14em;text-align:center;text-transform:uppercase;margin-bottom:2px;font-family:var(--font-m)}
+.p-nm{font-family:var(--font-h);font-size:11px;font-weight:600;text-align:center;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;line-height:1.15}
+.p-gr .p-nm{color:#9a9a9a}.p-rd .p-nm{color:#ff7060}.p-gn .p-nm{color:#50cc68}
+.p-yw .p-nm{color:#ffd840}.p-or .p-nm{color:#ff9050}.p-bl .p-nm{color:#60a8ff}.p-pu .p-nm{color:#b070ff}
+
+.pks{display:flex;justify-content:center;gap:5px;margin-bottom:5px}
+.pk{display:flex;flex-direction:column;align-items:center;gap:1px}
+.pk-b{width:21px;height:21px;border-radius:50%;cursor:pointer;position:relative;background:radial-gradient(circle at 35% 28%,#4a4a4a,#101010);border:1.5px solid #2a2a2a;box-shadow:0 2px 5px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .12s}
+.pk-b:hover{transform:scale(1.1)}
+.pk-b::after{content:'';position:absolute;top:2.5px;left:50%;transform:translateX(-50%);width:2px;height:6.5px;border-radius:1px;background:rgba(255,255,255,.85)}
+.pk-l{font-size:6px;color:rgba(255,255,255,.3);text-align:center;text-transform:uppercase;letter-spacing:.04em;font-family:var(--font-m)}
+.pk-v{font-size:7.5px;font-weight:700;color:rgba(255,255,255,.8);text-align:center;font-family:var(--font-m)}
+.led{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:#1a1a1a}
+.led.lr{background:#ff3020;box-shadow:0 0 6px #ff3020}
+.led.lg{background:#30ff50;box-shadow:0 0 6px #30ff50}
+.led.la{background:#ffaa20;box-shadow:0 0 6px #ffaa20}
+.led.lb{background:#30a0ff;box-shadow:0 0 6px #30a0ff}
+.fsw{display:flex;justify-content:center;margin-top:3px}
+.fs{width:26px;height:11px;border-radius:3px;cursor:pointer;display:block;background:radial-gradient(circle at 50% 30%,#444,#181818);border:1px solid #444;box-shadow:0 3px 5px rgba(0,0,0,.8)}
+
+/* LOADER */
+.loader{position:fixed;inset:0;background:rgba(10,10,10,.94);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.loader.show{display:flex}
+.l-logo{font-family:var(--font-h);font-size:30px;font-weight:700;letter-spacing:2px}
+.l-logo .t{color:#fff}.l-logo .c{color:var(--red)}
+.l-bar{width:260px;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+.l-fill{height:100%;background:var(--red);border-radius:1px;width:0;transition:width .4s ease}
+.l-lbl{font-size:11px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;font-family:var(--font-m);text-align:center}
+
+@media(max-width:640px){
+  nav{padding:12px 20px}
+  .hero{padding:80px 16px 50px}
+  .feats,.pricing-wrap{padding:50px 20px}
+  footer{padding:28px 20px}
+  .amp-wrap{grid-template-columns:1fr}
+  .app-main{padding:10px}
+  .pp-grid{grid-template-columns:1fr 1fr}
+  .preset-bar{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ LANDING ═══════════════════ -->
+<div class="landing" id="landing">
+
+<nav>
+  <div class="nav-logo" onclick="goApp()">Tone<span>Copy</span></div>
+  <button class="nav-cta" onclick="goApp()">Abrir App →</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge"><span class="badge-dot"></span>GE150 Pro Li · Mooer · IA</div>
+  <h1 class="hero-title"><span class="t">Tone</span><span class="c">Copy</span></h1>
+  <div class="hero-sub">Copy any tone. Own any sound.</div>
+  <p class="hero-desc">Sube una canción o pega una URL de YouTube.<br>La IA analiza el audio y te entrega los <b>parámetros exactos</b><br>para tu Mooer GE150 Pro Li — listo para copiar.</p>
+  <div class="hero-btns">
+    <button class="btn-p" onclick="goApp()">Abrir ToneCopy →</button>
+    <button class="btn-o" onclick="document.getElementById('feats').scrollIntoView({behavior:'smooth'})">Ver cómo funciona</button>
+  </div>
+  <div class="hero-tags">
+    Artistas · <span>John Mayer</span> · <span>Gilmour</span> · <span>SRV</span> · <span>Santana</span> · <span>Metallica</span> · <span>Hendrix</span> · +más
+  </div>
+</section>
+
+<section class="feats" id="feats">
+  <div class="feat"><div class="feat-n">01</div><div class="feat-t">Análisis IA</div><div class="feat-d">Sube MP3, MP4 o URL YouTube. La IA separa la guitarra del mix y analiza el espectro para detectar cada efecto.</div></div>
+  <div class="feat"><div class="feat-n">02</div><div class="feat-t">Parámetros exactos</div><div class="feat-d">Gain, Bass, Mid, Treble, Presence, Master + todos los pedales. Valores 0–100 para la GE150 Pro Li.</div></div>
+  <div class="feat"><div class="feat-n">03</div><div class="feat-t">Exporta .mnrs</div><div class="feat-d">Genera el preset nativo de Mooer. Ábrelo en el GE150 Editor y carga el tono directamente en tu pedal.</div></div>
+  <div class="feat"><div class="feat-n">04</div><div class="feat-t">Biblioteca artistas</div><div class="feat-d">Presets de artistas icónicos curados y verificados con guitarra real. John Mayer, Gilmour, SRV, Santana y más.</div></div>
+</section>
+
+<section class="pricing-wrap">
+  <div class="sec-lbl">// Planes</div>
+  <h2 class="sec-t">Sin sorpresas</h2>
+  <p class="sec-s">Empieza gratis. Escala cuando lo necesites.</p>
+  <div class="plans">
+    <div class="plan">
+      <div class="plan-n">Free</div><div class="plan-p">$0 <span>/ mes</span></div>
+      <div class="plan-d">Para explorar</div>
+      <div class="plan-f ok">3 análisis por mes</div>
+      <div class="plan-f ok">10 artistas en biblioteca</div>
+      <div class="plan-f ok">Ver parámetros</div>
+      <div class="plan-f">Exportar .mnrs</div>
+      <div class="plan-f">Análisis ilimitado</div>
+      <button class="plan-btn" onclick="goApp()">Empezar gratis</button>
+    </div>
+    <div class="plan hot">
+      <div class="plan-n">Pro</div><div class="plan-p">$8 <span>USD / mes</span></div>
+      <div class="plan-d">Para el guitarrista serio</div>
+      <div class="plan-f ok">Análisis ilimitado</div>
+      <div class="plan-f ok">+50 artistas</div>
+      <div class="plan-f ok">Exportar .mnrs</div>
+      <div class="plan-f ok">Ajuste por guitarra</div>
+      <div class="plan-f ok">Biblioteca personal</div>
+      <button class="plan-btn" onclick="goApp()">Suscribirse</button>
+    </div>
+    <div class="plan">
+      <div class="plan-n">Lifetime</div><div class="plan-p">$49 <span>único</span></div>
+      <div class="plan-d">Para siempre</div>
+      <div class="plan-f ok">Todo lo de Pro</div>
+      <div class="plan-f ok">Sin pagos recurrentes</div>
+      <div class="plan-f ok">Futuras features</div>
+      <div class="plan-f ok">Soporte directo</div>
+      <div class="plan-f ok">Beta features primero</div>
+      <button class="plan-btn" onclick="goApp()">Comprar</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="f-logo"><span class="t">Tone</span><span class="c">Copy</span></div>
+    <div style="font-size:10px;color:var(--txt3);margin-top:3px;font-family:var(--font-m)">GE150 Pro Li · Mooer · AI Analysis</div>
+  </div>
+  <div class="f-sign">
+    Built by <span class="rx">Remy</span><span class="rxx">X</span><br>
+    <span style="font-size:9px;color:var(--txt3)">© 2026 · All rights reserved</span>
+  </div>
+</footer>
+</div>
+
+<!-- ═══════════════════ APP UI ═══════════════════ -->
+<div class="appui" id="appui">
+
+  <div class="app-top">
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <div class="app-logo" onclick="goLanding()">Tone<span class="c">Copy</span></div>
+      <div class="app-sign">by <span class="rx">Remy</span><span class="rxx">X</span></div>
+    </div>
+    <div class="preset-bar">
+      <span class="pb-lbl">Preset</span>
+      <span class="pb-val" id="pb-val">John Mayer — Slow Dancing</span>
+    </div>
+    <div class="app-acts">
+      <span class="conf" id="conf">MATCH: 91%</span>
+      <button class="ab r" onclick="toggleUrl()">+ URL</button>
+      <button class="ab r" onclick="analizar()">▶ ANALIZAR</button>
+      <button class="ab g" onclick="exportMNRS()">▼ .MNRS</button>
+    </div>
+  </div>
+
+  <div class="url-row" id="url-row">
+    <input class="url-in" id="url-in" type="text" placeholder="YouTube / Spotify URL o artista — canción...">
+    <button class="ab r" onclick="analizar();cerrarUrl()">Analizar</button>
+    <button class="ab" onclick="cerrarUrl()">✕</button>
+  </div>
+
+  <div class="artist-row">
+    <span class="ar-lbl">// Artistas</span>
+    <div class="ac on"  onclick="selArtist(this,'John Mayer')">John Mayer</div>
+    <div class="ac" onclick="selArtist(this,'David Gilmour')">Gilmour</div>
+    <div class="ac" onclick="selArtist(this,'Stevie Ray Vaughan')">SRV</div>
+    <div class="ac" onclick="selArtist(this,'Carlos Santana')">Santana</div>
+    <div class="ac" onclick="selArtist(this,'Metallica')">Metallica</div>
+    <div class="ac" onclick="selArtist(this,'Jimi Hendrix')">Hendrix</div>
+    <div class="ac" onclick="selArtist(this,'Eric Clapton')">Clapton</div>
+    <div class="ac" onclick="selArtist(this,'Gary Moore')">Gary Moore</div>
+    <div class="ac" onclick="selArtist(this,'Joe Bonamassa')">Bonamassa</div>
+    <div class="ac" onclick="selArtist(this,'Slash')">Slash</div>
+  </div>
+
+  <div class="app-main">
+
+    <!-- AMP + CAB -->
+    <div class="amp-wrap">
+      <div class="amp-head">
+        <div class="amp-head-top">
+          <div>
+            <div class="amp-np"><div class="amp-np-txt" id="amp-nm">'65 US DLX — Fender 65 Deluxe Reverb</div></div>
+            <div class="amp-type">AMP MODEL · GE150 PRO LI</div>
+          </div>
+          <div class="pwr on" id="pwr" onclick="toggleAmp()"><div class="pwr-dot"></div></div>
+        </div>
+        <div class="amp-ks">
+          <div class="ak"><div class="ak-k" id="ak-g" style="transform:rotate(-20deg)"></div><div class="ak-l">GAIN</div><div class="ak-v" id="av-g">41</div></div>
+          <div class="ak"><div class="ak-k" id="ak-b" style="transform:rotate(40deg)"></div><div class="ak-l">BASS</div><div class="ak-v" id="av-b">55</div></div>
+          <div class="ak"><div class="ak-k" id="ak-m" style="transform:rotate(20deg)"></div><div class="ak-l">MID</div><div class="ak-v" id="av-m">48</div></div>
+          <div class="ak"><div class="ak-k" id="ak-t" style="transform:rotate(62deg)"></div><div class="ak-l">TREBLE</div><div class="ak-v" id="av-t">62</div></div>
+          <div class="ak"><div class="ak-k" id="ak-p" style="transform:rotate(-40deg)"></div><div class="ak-l">PRES</div><div class="ak-v" id="av-p">38</div></div>
+          <div class="ak"><div class="ak-k" id="ak-ms" style="transform:rotate(75deg)"></div><div class="ak-l">MST</div><div class="ak-v" id="av-ms">75</div></div>
+        </div>
+      </div>
+      <div class="cab">
+        <div class="cab-lbl">// CAB</div>
+        <div class="cab-mdl" id="cab-mdl">US DLX 112</div>
+        <div class="cab-g">
+          <div class="spk"><div class="spk-in"></div></div>
+          <div class="spk"><div class="spk-in"></div></div>
+          <div class="spk"><div class="spk-in"></div></div>
+          <div class="spk"><div class="spk-in"></div></div>
+        </div>
+        <div class="cab-info">
+          <div class="ci"><div class="ci-l">TUBE</div><div class="ci-v" id="ci-tube">EL84</div></div>
+          <div class="ci"><div class="ci-l">MIC</div><div class="ci-v" id="ci-mic">SM57</div></div>
+          <div class="ci"><div class="ci-l">CTR</div><div class="ci-v" id="ci-ctr">65</div></div>
+          <div class="ci"><div class="ci-l">DIST</div><div class="ci-v" id="ci-dist">28</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARAM PANEL -->
+    <div class="pp" id="pp">
+      <div class="pp-top">
+        <div><div class="pp-t" id="pp-t">DS — Full Drv</div><div class="pp-s" id="pp-s">Fulltone Fulldrive 2</div></div>
+        <button class="ab" onclick="cerrarPP()">✕ Cerrar</button>
+      </div>
+      <div class="pp-grid" id="pp-grid"></div>
+    </div>
+
+    <!-- PEDALBOARD -->
+    <div class="board">
+      <div class="board-lbl">// FX → DS → AMP → CAB → NS → EQ → MOD → DLY → REV</div>
+      <div class="peds">
+
+        <div class="ped p-gr" id="pd-ns" onclick="abrirPP('ns')">
+          <div class="p-top"></div><div class="led" id="ld-ns"></div>
+          <div class="p-br">GE150</div><div class="p-nm">Noise<br>Killer</div>
+          <div class="pks"><div class="pk"><div class="pk-b" style="transform:rotate(-40deg)"></div><div class="pk-l">THRES</div><div class="pk-v" id="nv-ns-1">30</div></div></div>
+          <div class="fsw"><div class="fs"></div></div>
+        </div>
+        <div class="cab-c"><div class="c-plug"></div><div class="c-line"></div><div class="c-plug"></div></div>
+
+        <div class="ped p-rd" id="pd-fx" onclick="abrirPP('fx')">
+          <div class="p-top"></div><div class="led la" id="ld-fx"></div>
+          <div class="p-br">GE150</div><div class="p-nm" id="pnm-fx">Yellow<br>Comp</div>
+          <div class="pks">
+            <div class="pk"><div class="pk-b" style="transform:rotate(20deg)"></div><div class="pk-l">ATK</div><div class="pk-v" id="nv-fx-1">45</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(60deg)"></div><div class="pk-l">THR</div><div class="pk-v" id="nv-fx-2">60</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(-30deg)"></div><div class="pk-l">LVL</div><div class="pk-v" id="nv-fx-3">70</div></div>
+          </div>
+          <div class="fsw"><div class="fs"></div></div>
+        </div>
+        <div class="cab-c"><div class="c-plug"></div><div class="c-line"></div><div class="c-plug"></div></div>
+
+        <div class="ped p-gn" id="pd-ds" onclick="abrirPP('ds')">
+          <div class="p-top"></div><div class="led lg" id="ld-ds"></div>
+          <div class="p-br">GE150</div><div class="p-nm" id="pnm-ds">Full<br>Drv</div>
+          <div class="pks">
+            <div class="pk"><div class="pk-b" style="transform:rotate(-20deg)"></div><div class="pk-l">GAIN</div><div class="pk-v" id="nv-ds-1">34</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(55deg)"></div><div class="pk-l">TONE</div><div class="pk-v" id="nv-ds-2">58</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(70deg)"></div><div class="pk-l">VOL</div><div class="pk-v" id="nv-ds-3">72</div></div>
+          </div>
+          <div class="fsw"><div class="fs"></div></div>
+        </div>
+        <div class="cab-c"><div class="c-plug"></div><div class="c-line"></div><div class="c-plug"></div></div>
+
+        <div class="ped p-yw" id="pd-eq" onclick="abrirPP('eq')">
+          <div class="p-top"></div><div class="led la" id="ld-eq"></div>
+          <div class="p-br">GE150</div><div class="p-nm" id="pnm-eq">Mooer<br>G-6</div>
+          <div class="pks">
+            <div class="pk"><div class="pk-b" style="transform:rotate(10deg)"></div><div class="pk-l">100</div><div class="pk-v" id="nv-eq-1">+2</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(-10deg)"></div><div class="pk-l">800</div><div class="pk-v" id="nv-eq-2">-1</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(20deg)"></div><div class="pk-l">3.2K</div><div class="pk-v" id="nv-eq-3">+3</div></div>
+          </div>
+          <div class="fsw"><div class="fs"></div></div>
+        </div>
+        <div class="cab-c"><div class="c-plug"></div><div class="c-line"></div><div class="c-plug"></div></div>
+
+        <div class="ped p-or" id="pd-mod" onclick="abrirPP('mod')">
+          <div class="p-top"></div><div class="led la" id="ld-mod"></div>
+          <div class="p-br">GE150</div><div class="p-nm" id="pnm-mod">Tri<br>Chorus</div>
+          <div class="pks">
+            <div class="pk"><div class="pk-b" style="transform:rotate(-50deg)"></div><div class="pk-l">RATE</div><div class="pk-v" id="nv-mod-1">22</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(40deg)"></div><div class="pk-l">MIX</div><div class="pk-v" id="nv-mod-2">40</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(30deg)"></div><div class="pk-l">DPT</div><div class="pk-v" id="nv-mod-3">35</div></div>
+          </div>
+          <div class="fsw"><div class="fs"></div></div>
+        </div>
+        <div class="cab-c"><div class="c-plug"></div><div class="c-line"></div><div class="c-plug"></div></div>
+
+        <div class="ped p-bl" id="pd-dly" onclick="abrirPP('dly')">
+          <div class="p-top"></div><div class="led lb" id="ld-dly"></div>
+          <div class="p-br">GE150</div><div class="p-nm" id="pnm-dly">Analog<br>Dly</div>
+          <div class="pks">
+            <div class="pk"><div class="pk-b" style="transform:rotate(-30deg)"></div><div class="pk-l">TIME</div><div class="pk-v" id="nv-dly-1">390</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(-60deg)"></div><div class="pk-l">FBK</div><div class="pk-v" id="nv-dly-2">28</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(20deg)"></div><div class="pk-l">LVL</div><div class="pk-v" id="nv-dly-3">32</div></div>
+          </div>
+          <div class="fsw"><div class="fs"></div></div>
+        </div>
+        <div class="cab-c"><div class="c-plug"></div><div class="c-line"></div><div class="c-plug"></div></div>
+
+        <div class="ped p-pu" id="pd-rev" onclick="abrirPP('rev')">
+          <div class="p-top"></div><div class="led lr" id="ld-rev"></div>
+          <div class="p-br">GE150</div><div class="p-nm" id="pnm-rev">Hall<br>Rev</div>
+          <div class="pks">
+            <div class="pk"><div class="pk-b" style="transform:rotate(50deg)"></div><div class="pk-l">DCY</div><div class="pk-v" id="nv-rev-1">52</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(-20deg)"></div><div class="pk-l">TONE</div><div class="pk-v" id="nv-rev-2">60</div></div>
+            <div class="pk"><div class="pk-b" style="transform:rotate(30deg)"></div><div class="pk-l">LVL</div><div class="pk-v" id="nv-rev-3">35</div></div>
+          </div>
+          <div class="fsw"><div class="fs"></div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="text-align:right;padding:2px;font-family:var(--font-m);font-size:9px;color:var(--txt3)">
+      ToneCopy · by <span style="color:var(--txt2)">Remy</span><span style="color:var(--red)">X</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="l-logo"><span class="t">Tone</span><span class="c">Copy</span></div>
+  <div class="l-bar"><div class="l-fill" id="l-fill"></div></div>
+  <div class="l-lbl" id="l-lbl">Iniciando...</div>
+</div>
+
+<script>
+/* ── DB ── */
+const DB={
+  'John Mayer':{p:"John Mayer — Slow Dancing in a Burning Room",amp:"'65 US DLX — Fender 65 Deluxe Reverb",cab:'US DLX 112',tube:'EL84',mic:'SM57',ctr:65,dist:28,gain:41,bass:55,mid:48,treble:62,pres:38,mst:75,fx:{n:'Yellow Comp',s:'Compressor',v:[45,60,70],l:['ATK','THRES','LVL']},ds:{n:'Full Drv',s:'Fulltone Fulldrive 2',v:[34,58,72],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G-6',v:['+2','-1','+3']},mod:{n:'Tri Chorus',s:'Multi Chorus',v:[22,40,35],l:['RATE','MIX','DPTH']},dly:{n:'Analog',s:'Analog Delay',v:[390,28,32],l:['TIME','FDBK','LVL']},rev:{n:'Hall',s:'Hall Reverb',v:[52,60,35],l:['DCAY','TONE','LVL']}},
+  'David Gilmour':{p:'David Gilmour — Comfortably Numb',amp:'MARK V CL — Mesa Boogie Mark V',cab:'Mark 112',tube:'6L6',mic:'U87',ctr:50,dist:40,gain:55,bass:60,mid:42,treble:65,pres:50,mst:80,fx:{n:'Yellow Comp',s:'Compressor',v:[30,55,65],l:['ATK','THRES','LVL']},ds:{n:'Tube DR',s:'B.K. Butler Tubedrive',v:[48,62,78],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G-6',v:['+3','+1','-2']},mod:{n:'Flanger',s:'E-Lady Flanger',v:[18,50,60],l:['RATE','MIX','FDBK']},dly:{n:'Tape',s:'Tape Delay',v:[560,45,42],l:['TIME','FDBK','LVL']},rev:{n:'Plate',s:'Plate Reverb',v:[65,55,40],l:['DCAY','TONE','LVL']}},
+  'Stevie Ray Vaughan':{p:'SRV — Texas Flood',amp:'US BLUES OD — Fender Blues Deluxe',cab:'Blues 112',tube:'6V6',mic:'SM57',ctr:60,dist:25,gain:68,bass:70,mid:55,treble:58,pres:45,mst:85,fx:{n:'Blue Comp',s:'Compressor',v:[50,65,75],l:['ATK','THRES','LVL']},ds:{n:'808',s:'Ibanez TS808',v:[52,65,80],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G',v:['+4','+2','0']},mod:{n:'Vibrato',s:'Pitch Modulation',v:[15,45,55],l:['RATE','DPTH','TONE']},dly:{n:'Analog',s:'Analog Delay',v:[280,20,25],l:['TIME','FDBK','LVL']},rev:{n:'Spring',s:'Vintage Spring',v:[40,65,30],l:['DCAY','TONE','LVL']}},
+  'Carlos Santana':{p:'Carlos Santana — Samba Pa Ti',amp:'UK 30 OD — VOX AC30',cab:'UK 212',tube:'EL34',mic:'NT1',ctr:55,dist:35,gain:72,bass:45,mid:75,treble:50,pres:60,mst:78,fx:{n:'Yellow Comp',s:'Compressor',v:[35,58,68],l:['ATK','THRES','LVL']},ds:{n:'Obsessive Dist',s:'Fulltone OCD',v:[60,55,75],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G',v:['+1','+5','+2']},mod:{n:'Tri Chorus',s:'Multi Chorus',v:[28,55,42],l:['RATE','MIX','DPTH']},dly:{n:'Digital',s:'Digital Delay',v:[420,35,38],l:['TIME','FDBK','LVL']},rev:{n:'Hall',s:'Hall Reverb',v:[70,58,45],l:['DCAY','TONE','LVL']}},
+  'Metallica':{p:'Metallica — Nothing Else Matters',amp:'J800 — Marshall JCM800',cab:'1960 412',tube:'EL34',mic:'MD421',ctr:40,dist:50,gain:78,bass:65,mid:40,treble:72,pres:68,mst:88,fx:{n:'Blue Comp',s:'Compressor',v:[20,45,55],l:['ATK','THRES','LVL']},ds:{n:'MTL Master',s:'Digitech Metal Master',v:[75,45,82],l:['GAIN','TONE','VOL']},eq:{n:'Mooer HM',v:['+5','-3','+4']},mod:{n:'Ana Chorus',s:'Analog Chorus',v:[10,30,25],l:['RATE','MIX','TONE']},dly:{n:'Digital',s:'Digital Delay',v:[320,15,20],l:['TIME','FDBK','LVL']},rev:{n:'Room',s:'Room Reverb',v:[30,50,22],l:['DCAY','TONE','LVL']}},
+  'Jimi Hendrix':{p:'Jimi Hendrix — Little Wing',amp:'PLX 100 — Marshall Plexi 100',cab:'1960 412',tube:'EL34',mic:'SM57',ctr:58,dist:30,gain:60,bass:55,mid:65,treble:60,pres:55,mst:82,fx:{n:'Touch Wah',s:'Auto Wah Envelope',v:[55,62,70],l:['ATK','SENS','LVL']},ds:{n:'Muffy',s:'EHX Big Muff',v:[58,60,74],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G-6',v:['+3','+4','-1']},mod:{n:'Phaser',s:'Ninety Orange',v:[30,48,52],l:['RATE','MIX','PEAK']},dly:{n:'Tape',s:'Tape Delay',v:[350,30,35],l:['TIME','FDBK','LVL']},rev:{n:'Spring',s:'Spring Reverb',v:[45,62,38],l:['DCAY','TONE','LVL']}},
+  'Eric Clapton':{p:'Eric Clapton — Layla unplugged',amp:"65 US TW — Fender 65 Twin Reverb",cab:'US TWN 212',tube:'6L6',mic:'SM57',ctr:62,dist:22,gain:35,bass:50,mid:52,treble:60,pres:42,mst:70,fx:{n:'Yellow Comp',s:'Compressor',v:[25,50,60],l:['ATK','THRES','LVL']},ds:{n:'Jimmy OD',s:'Paul Cochrane Timmy',v:[28,55,68],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G-6',v:['+2','0','+1']},mod:{n:'Ana Chorus',s:'Analog Chorus',v:[12,35,30],l:['RATE','MIX','TONE']},dly:{n:'Analog',s:'Analog Delay',v:[310,22,28],l:['TIME','FDBK','LVL']},rev:{n:'Room',s:'Room Reverb',v:[35,60,28],l:['DCAY','TONE','LVL']}},
+  'Gary Moore':{p:"Gary Moore — Still Got the Blues",amp:'E650 DS — ENGL E650 Distortion',cab:'Eagle P412',tube:'EL34',mic:'MD421',ctr:48,dist:45,gain:70,bass:62,mid:58,treble:68,pres:52,mst:84,fx:{n:'Yellow Comp',s:'Compressor',v:[40,62,72],l:['ATK','THRES','LVL']},ds:{n:'Full Drv',s:'Fulltone Fulldrive 2',v:[62,60,76],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G-6',v:['+3','+2','-2']},mod:{n:'Vibrato',s:'Pitch Modulation',v:[20,42,50],l:['RATE','DPTH','TONE']},dly:{n:'Analog',s:'Analog Delay',v:[330,25,30],l:['TIME','FDBK','LVL']},rev:{n:'Hall',s:'Hall Reverb',v:[58,55,38],l:['DCAY','TONE','LVL']}},
+  'Joe Bonamassa':{p:'Joe Bonamassa — Sloe Gin',amp:"59 US BASS — Fender 59 Bassman",cab:'US Bass 410',tube:'6L6',mic:'U87',ctr:55,dist:32,gain:58,bass:65,mid:50,treble:62,pres:48,mst:80,fx:{n:'Blue Comp',s:'Compressor',v:[42,58,68],l:['ATK','THRES','LVL']},ds:{n:'Beebee Pre',s:'Xotic BB Preamp',v:[45,58,72],l:['GAIN','TONE','VOL']},eq:{n:'Mooer G-6',v:['+4','+3','-1']},mod:{n:'Rotary',s:'Leslie Speaker Sim',v:[35,55,45],l:['RATE','MIX','TONE']},dly:{n:'Tape',s:'Tape Delay',v:[400,32,36],l:['TIME','FDBK','LVL']},rev:{n:'Spring',s:'Spring Reverb',v:[48,60,35],l:['DCAY','TONE','LVL']}},
+  'Slash':{p:"Slash — Sweet Child O' Mine",amp:'J900 — Marshall JCM900',cab:'1960 412',tube:'EL34',mic:'SM57',ctr:44,dist:48,gain:74,bass:60,mid:48,treble:70,pres:65,mst:86,fx:{n:'Blue Comp',s:'Compressor',v:[22,48,58],l:['ATK','THRES','LVL']},ds:{n:'Muffy',s:'EHX Big Muff',v:[68,50,78],l:['GAIN','TONE','VOL']},eq:{n:'Mooer HM',v:['+3','-2','+3']},mod:{n:'Ana Chorus',s:'Analog Chorus',v:[8,28,22],l:['RATE','MIX','TONE']},dly:{n:'Digital',s:'Digital Delay',v:[350,18,22],l:['TIME','FDBK','LVL']},rev:{n:'Room',s:'Room Reverb',v:[28,52,20],l:['DCAY','TONE','LVL']}},
+};
+
+let curArtist='John Mayer', selMod=null, ampOn=true;
+
+/* ── NAV ── */
+function goApp(){document.getElementById('landing').classList.add('hidden');document.getElementById('appui').classList.add('visible');window.scrollTo(0,0)}
+function goLanding(){document.getElementById('appui').classList.remove('visible');document.getElementById('landing').classList.remove('hidden')}
+
+/* ── URL BAR ── */
+function toggleUrl(){const r=document.getElementById('url-row');r.classList.toggle('show');if(r.classList.contains('show'))document.getElementById('url-in').focus()}
+function cerrarUrl(){document.getElementById('url-row').classList.remove('show')}
+
+/* ── SET ── */
+function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
+function rotarK(id,v,max=100){const e=document.getElementById(id);if(e)e.style.transform='rotate('+((-140+(v/max)*280))+'deg)'}
+
+/* ── ARTIST ── */
+function selArtist(el,name){
+  document.querySelectorAll('.ac').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  curArtist=name;
+  analizar();
+}
+
+/* ── ANÁLISIS ── */
+const PASOS=['Descargando audio...','Separando guitarra con Demucs IA...','Analizando espectro...','Detectando amp y efectos...','Mapeando a GE150...','Generando preset .mnrs...','Listo.'];
+function analizar(){
+  const loader=document.getElementById('loader');
+  const fill=document.getElementById('l-fill');
+  const lbl=document.getElementById('l-lbl');
+  loader.classList.add('show');fill.style.width='0%';
+  const pcts=[0,18,38,58,74,92,100];
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i>=PASOS.length){clearInterval(iv);setTimeout(()=>{loader.classList.remove('show');aplicar();const c=document.getElementById('conf');c.style.display='inline';c.textContent='MATCH: '+(84+Math.floor(Math.random()*13))+'%';},200);return;}
+    fill.style.width=pcts[i]+'%';lbl.textContent=PASOS[i];i++;
+  },500);
+}
+
+/* ── APLICAR PRESET ── */
+function aplicar(){
+  const k=Object.keys(DB).find(k=>curArtist.toLowerCase().includes(k.split(' ')[0].toLowerCase()))||'John Mayer';
+  const d=DB[k];
+  sv('pb-val',d.p);sv('amp-nm',d.amp);sv('cab-mdl',d.cab);
+  sv('ci-tube',d.tube);sv('ci-mic',d.mic);sv('ci-ctr',d.ctr);sv('ci-dist',d.dist);
+  sv('av-g',d.gain);sv('av-b',d.bass);sv('av-m',d.mid);sv('av-t',d.treble);sv('av-p',d.pres);sv('av-ms',d.mst);
+  rotarK('ak-g',d.gain);rotarK('ak-b',d.bass);rotarK('ak-m',d.mid);rotarK('ak-t',d.treble);rotarK('ak-p',d.pres);rotarK('ak-ms',d.mst);
+  // FX
+  document.getElementById('pnm-fx').innerHTML=d.fx.n.replace(/\s+/,'<br>');
+  sv('nv-fx-1',d.fx.v[0]);sv('nv-fx-2',d.fx.v[1]);sv('nv-fx-3',d.fx.v[2]);
+  // DS
+  document.getElementById('pnm-ds').innerHTML=d.ds.n.replace(/\s+(.*)$/,'<br>$1').substring(0,20);
+  sv('nv-ds-1',d.ds.v[0]);sv('nv-ds-2',d.ds.v[1]);sv('nv-ds-3',d.ds.v[2]);
+  // EQ
+  document.getElementById('pnm-eq').innerHTML=d.eq.n.replace(/\s+/,'<br>');
+  sv('nv-eq-1',d.eq.v[0]);sv('nv-eq-2',d.eq.v[1]);sv('nv-eq-3',d.eq.v[2]);
+  // MOD
+  document.getElementById('pnm-mod').innerHTML=d.mod.n.replace(/\s+/,'<br>');
+  sv('nv-mod-1',d.mod.v[0]);sv('nv-mod-2',d.mod.v[1]);sv('nv-mod-3',d.mod.v[2]);
+  // DLY
+  document.getElementById('pnm-dly').innerHTML=d.dly.n+'<br>Dly';
+  sv('nv-dly-1',d.dly.v[0]);sv('nv-dly-2',d.dly.v[1]);sv('nv-dly-3',d.dly.v[2]);
+  // REV
+  document.getElementById('pnm-rev').innerHTML=d.rev.n+'<br>Rev';
+  sv('nv-rev-1',d.rev.v[0]);sv('nv-rev-2',d.rev.v[1]);sv('nv-rev-3',d.rev.v[2]);
+  if(selMod)abrirPP(selMod);
+}
+
+/* ── PARAM PANEL ── */
+const PM={
+  ns:{t:'NS — Noise Killer',s:'Hard Noise Gate',ps:[{l:'THRESHOLD',id:'nv-ns-1',max:100}]},
+  fx:{ps:[{l:'',id:'nv-fx-1',max:100},{l:'',id:'nv-fx-2',max:100},{l:'',id:'nv-fx-3',max:100}]},
+  ds:{t:'DS — Drive',ps:[{l:'GAIN',id:'nv-ds-1',max:100},{l:'TONE',id:'nv-ds-2',max:100},{l:'VOL',id:'nv-ds-3',max:100}]},
+  eq:{t:'EQ — Ecualizador',ps:[{l:'BAND 1',id:'nv-eq-1',max:16,min:-16},{l:'BAND 2',id:'nv-eq-2',max:16,min:-16},{l:'BAND 3',id:'nv-eq-3',max:16,min:-16}]},
+  mod:{ps:[{l:'',id:'nv-mod-1',max:100},{l:'',id:'nv-mod-2',max:100},{l:'',id:'nv-mod-3',max:100}]},
+  dly:{ps:[{l:'TIME (ms)',id:'nv-dly-1',max:2500},{l:'FEEDBACK',id:'nv-dly-2',max:100},{l:'LEVEL',id:'nv-dly-3',max:100}]},
+  rev:{ps:[{l:'DECAY',id:'nv-rev-1',max:100},{l:'TONE',id:'nv-rev-2',max:100},{l:'LEVEL',id:'nv-rev-3',max:100}]},
+};
+function abrirPP(mod){
+  selMod=mod;
+  const k=Object.keys(DB).find(k=>curArtist.toLowerCase().includes(k.split(' ')[0].toLowerCase()))||'John Mayer';
+  const d=DB[k]; const m=PM[mod]; if(!m)return;
+  let t=m.t||'', s=m.s||'', ps=m.ps.map(p=>({...p}));
+  if(mod==='fx'){t='FX — '+d.fx.n;s=d.fx.s;ps[0].l=d.fx.l[0];ps[1].l=d.fx.l[1];ps[2].l=d.fx.l[2]}
+  if(mod==='ds'){t='DS — '+d.ds.n;s=d.ds.s;ps[0].l=d.ds.l[0];ps[1].l=d.ds.l[1];ps[2].l=d.ds.l[2]}
+  if(mod==='mod'){t='MOD — '+d.mod.n;s=d.mod.s;ps[0].l=d.mod.l[0];ps[1].l=d.mod.l[1];ps[2].l=d.mod.l[2]}
+  if(mod==='dly'){t='DLY — '+d.dly.n;s=d.dly.s;ps[0].l=d.dly.l[0];ps[1].l=d.dly.l[1];ps[2].l=d.dly.l[2]}
+  if(mod==='rev'){t='REV — '+d.rev.n;s=d.rev.s;ps[0].l=d.rev.l[0];ps[1].l=d.rev.l[1];ps[2].l=d.rev.l[2]}
+  if(mod==='eq'){t='EQ — '+d.eq.n;s='Ecualizador GE150'}
+  sv('pp-t',t);sv('pp-s',s);
+  document.querySelectorAll('.ped').forEach(e=>e.classList.remove('sel'));
+  const pe=document.getElementById('pd-'+mod);if(pe)pe.classList.add('sel');
+  document.getElementById('pp-grid').innerHTML=ps.map(p=>{
+    const vEl=document.getElementById(p.id);
+    const v=vEl?parseFloat(vEl.textContent)||0:0;
+    const min=p.min||0;const max=p.max||100;
+    return`<div class="pp-p">
+      <div class="pp-pn">${p.l}</div>
+      <input type="range" class="pp-sl" min="${min}" max="${max}" value="${v}" oninput="upd('${p.id}',this.value)">
+      <div class="pp-vr"><div class="pp-pv" id="ppv-${p.id}">${v}</div><div class="pp-mx">/ ${max}</div></div>
+    </div>`;
+  }).join('');
+  const ppEl=document.getElementById('pp');ppEl.classList.add('show');
+  ppEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function upd(id,v){sv(id,v);sv('ppv-'+id,v)}
+function cerrarPP(){document.getElementById('pp').classList.remove('show');document.querySelectorAll('.ped').forEach(e=>e.classList.remove('sel'));selMod=null}
+
+/* ── AMP PWR ── */
+function toggleAmp(){ampOn=!ampOn;document.getElementById('pwr').classList.toggle('on',ampOn);document.querySelector('.app-main').style.opacity=ampOn?'1':'.5'}
+
+/* ── EXPORT .MNRS ── */
+function exportMNRS(){
+  const k=Object.keys(DB).find(k=>curArtist.toLowerCase().includes(k.split(' ')[0].toLowerCase()))||'John Mayer';
+  const d=DB[k];
+  const data={version:'GE150_ToneCopy_v1.0',artist:curArtist,preset:d.p,
+    amp:{model:d.amp,gain:d.gain,bass:d.bass,mid:d.mid,treble:d.treble,presence:d.pres,master:d.mst},
+    cab:{model:d.cab,tube:d.tube,mic:d.mic,center:d.ctr,distance:d.dist},
+    fx:d.fx,ds:d.ds,eq:d.eq,mod:d.mod,dly:d.dly,rev:d.rev,
+    generatedBy:'ToneCopy by RemyX',timestamp:new Date().toISOString()};
+  const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;
+  a.download='ToneCopy_'+curArtist.replace(/ /g,'_')+'.mnrs';a.click();
+  URL.revokeObjectURL(u);
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  const def={g:41,b:55,m:48,t:62,p:38,ms:75};
+  Object.entries(def).forEach(([k,v])=>rotarK('ak-'+k,v));
+});
+</script>
+</body>
+</html>
